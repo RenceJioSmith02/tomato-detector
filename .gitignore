@@ -1,9 +1,17 @@
-/dataset/train*/
-/dataset/val*/
-/dataset/test*/
-/dataset/
+/version1/dataset/train*/
+/version1/dataset/val*/
+/version1/dataset/test*/
+/version1/dataset/
+
+/version2/dataset/train*/
+/version2/dataset/val*/
+/version2/dataset/test*/
+/version2/dataset/
+
 /for testing in presentation/
-/web/static/uploads*/
+
+/version1/web/static/uploads*/
+/version2/web/static/uploads*/
 
 venv/
 .env

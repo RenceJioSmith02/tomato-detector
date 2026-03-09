@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomato Disease Detector</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+<div class="container">
+
+  <!-- Nav -->
+  <nav class="top-nav">
+    <span class="nav-brand">Tomato AI</span>
+    <a href="/plots" class="nav-link">Training Evaluation Plots</a>
+  </nav>
+
+  <h1 class="page-title">Tomato Disease Detector</h1>
+  <p class="page-sub">Upload a leaf image and the model will diagnose it instantly.</p>
+
+  <!-- Upload -->
+  <div class="upload-section">
+    <div id="drop-area">
+      <p id="drop-text">Drag &amp; Drop an image here<br>or <strong>click to browse</strong></p>
+      <img id="preview" alt="Preview" />
+    </div>
+    <input type="file" id="fileInput" accept="image/*">
+    <div class="btn-row">
+      <button id="predictBtn" class="btn-primary">Predict</button>
+      <button id="clearBtn"   class="btn-secondary">Clear</button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="result-section" id="resultSection" style="display:none;">
+
+    <div id="resultCard">
+      <div class="result-badge" id="resultBadge" style="display: none;"></div>
+      <h2 id="result"></h2>
+      <p  id="confidence-text"></p>
+      <p  id="treatment" style="display: none;"></p>
+    </div>
+
+    <!-- Prediction probability chart -->
+    <div class="chart-wrap">
+      <h3>Prediction Probabilities</h3>
+      <canvas id="probChart" height="160"></canvas>
+    </div>
+
+  </div>
+
+  <!-- Spinner -->
+  <div id="spinner" style="display:none;">
+    <div class="spinner-ring"></div>
+    <p>Analyzing image…</p>
+  </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

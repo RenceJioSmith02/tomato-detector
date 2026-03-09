@@ -1,0 +1,240 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@600;700&display=swap');
+
+:root {
+  --green:      #2d7a45;
+  --green-lt:   #e8f5ee;
+  --red:        #c0392b;
+  --red-lt:     #fdecea;
+  --yellow:     #e67e22;
+  --yellow-lt:  #fef6ec;
+  --bg:         #f4f7f4;
+  --card:       #ffffff;
+  --text:       #1a2e1f;
+  --muted:      #6b7f70;
+  --border:     #d4e0d6;
+  --shadow:     0 4px 20px rgba(45,122,69,.10);
+  --radius:     14px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* Navigation */
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 28px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+}
+.nav-brand  { font-family: 'Space Grotesk', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--green); }
+.nav-link   { font-size: .9rem; color: var(--green); text-decoration: none; font-weight: 500; padding: 6px 14px; border: 1.5px solid var(--green); border-radius: 8px; transition: all .2s; }
+.nav-link:hover { background: var(--green); color: #fff; }
+
+/* Container */
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px 60px;
+}
+
+.page-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--green);
+  margin-bottom: 6px;
+}
+.page-sub { color: var(--muted); margin-bottom: 32px; }
+
+/* Upload Section */
+.upload-section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+  margin-bottom: 28px;
+}
+
+#drop-area {
+  border: 2.5px dashed var(--border);
+  border-radius: 10px;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+  overflow: hidden;
+  position: relative;
+}
+#drop-area:hover, #drop-area.drag-over { border-color: var(--green); background: var(--green-lt); }
+#drop-text { color: var(--muted); text-align: center; line-height: 1.7; pointer-events: none; }
+#preview   { max-width: 100%; max-height: 300px; display: none; border-radius: 8px; }
+
+#fileInput { display: none; }
+
+.btn-row { display: flex; gap: 12px; margin-top: 16px; }
+
+.btn-primary, .btn-secondary {
+  padding: 11px 28px;
+  border: none;
+  border-radius: 9px;
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.btn-primary   { background: var(--green); color: #fff; }
+.btn-primary:hover   { background: #235e35; transform: translateY(-1px); }
+.btn-secondary { background: #f0f0f0; color: var(--text); }
+.btn-secondary:hover { background: #e0e0e0; }
+
+/* Result Section */
+.result-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+#resultCard {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: var(--shadow);
+}
+.result-badge {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: .8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 10px;
+}
+.badge-healthy        { background: var(--green-lt);  color: var(--green); }
+.badge-downy_mildew   { background: var(--red-lt);    color: var(--red);   }
+.badge-other_diseases { background: var(--yellow-lt); color: var(--yellow);}
+
+#result { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; margin-bottom: 6px; }
+#confidence-text { color: var(--muted); margin-bottom: 10px; }
+#treatment { font-size: .95rem; padding: 12px 16px; background: var(--green-lt); border-left: 4px solid var(--green); border-radius: 6px; }
+
+.chart-wrap {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+}
+.chart-wrap h3 { font-size: 1rem; margin-bottom: 14px; color: var(--muted); }
+
+/* Spinner */
+#spinner {
+  text-align: center;
+  padding: 40px;
+  color: var(--muted);
+}
+.spinner-ring {
+  width: 48px; height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Plots Page */
+.plots-page .page-title { margin-top: 8px; }
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-bottom: 36px;
+}
+.metric-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px 16px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.metric-label { display: block; font-size: .78rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+.metric-value { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 1.55rem; font-weight: 700; color: var(--green); }
+
+.plots-gallery {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+.plot-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+}
+.plot-title { font-size: .95rem; color: var(--muted); margin-bottom: 14px; font-weight: 600; }
+.plot-img {
+  width: 100%;
+  border-radius: 8px;
+  cursor: zoom-in;
+  transition: transform .2s;
+}
+.plot-img:hover { transform: scale(1.01); }
+
+.no-plots-msg {
+  background: var(--yellow-lt);
+  border: 1.5px solid var(--yellow);
+  border-radius: var(--radius);
+  padding: 24px;
+  color: var(--yellow);
+}
+.no-plots-msg code { background: rgba(0,0,0,.06); padding: 2px 6px; border-radius: 4px; }
+
+/* Lightbox */
+.modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.82);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  cursor: zoom-out;
+}
+.modal-content {
+  max-width: 92vw;
+  max-height: 90vh;
+  border-radius: 10px;
+  box-shadow: 0 8px 40px rgba(0,0,0,.5);
+}
+.modal-close {
+  position: fixed;
+  top: 18px; right: 24px;
+  color: #fff;
+  font-size: 2.2rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+/* Responsive */
+@media (min-width: 700px) {
+  .plots-gallery { grid-template-columns: 1fr 1fr; }
+
+  /* Explicit layout helpers used in plots.html */
+  .plot-full { grid-column: 1 / -1; }  /* spans both columns */
+  .plot-half { grid-column: span 1; }  /* one column — pair sits side by side */
+}
