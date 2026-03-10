@@ -1,7 +1,7 @@
 {
-  "cercospora_threshold": 0.68,
+  "late_blight_threshold": 0.68,
   "od_threshold": 0.34,
-  "cercospora_class_index": 0,
+  "late_blight_class_index": 0,
   "od_class_index": 2,
   "healthy_class_index": 1,
   "note": "Priority: if cercospora score >= cercospora_threshold \u2192 cercospora_leaf_spot. Elif OD score >= od_threshold \u2192 other_diseases. Else \u2192 healthy."

@@ -35,8 +35,8 @@ LEARNING_RATE_FINE = 1e-5    # raised from 1e-6 → real fine-tuning signal
 LABEL_SMOOTHING    = 0.1     # label smoothing for better calibration
 
 # ── Class indices (alphabetical, as Keras assigns them) ──────────────────────
-# cercospora_leaf_spot = 0  |  healthy = 1  |  other_diseases = 2
-CERCOSPORA_IDX = 0
+# late_blight = 0  |  healthy = 1  |  other_diseases = 2
+LATE_BLIGHT_IDX = 0
 HEALTHY_IDX    = 1
 OD_IDX         = 2
 
@@ -291,12 +291,12 @@ y_score = np.array(y_score)
 #
 # Problem with a fixed threshold approach:
 #   - A single hardcoded value has no empirical basis from the validation set.
-#   - It can silently misclassify cercospora at lower confidence as other_diseases.
+#   - It can silently misclassify late_blight at lower confidence as other_diseases.
 #   - other_diseases becomes a catch-all fallback rather than a genuine prediction.
 #
 # Solution — 2D grid search on val set:
-#   Jointly search cercospora_thresh × od_thresh to maximize macro F1.
-#   Priority: cercospora first (highest crop damage risk) → other_diseases → healthy.
+#   Jointly search late_blight_thresh × od_thresh to maximize macro F1.
+#   Priority: late_blight first (highest crop damage risk) → other_diseases → healthy.
 #   A fine pass refines to 2 decimal places around the best coarse result.
 #   Result saved to models/threshold_config.json for app.py to load at startup.
 # ==========================================
@@ -311,17 +311,17 @@ for images, labels in val_ds:
 val_y_true  = np.array(val_y_true)
 val_y_score = np.array(val_y_score)
 
-def predict_with_thresholds(scores_array, cercospora_thresh, od_thresh):
+def predict_with_thresholds(scores_array, late_blight_thresh, od_thresh):
     """
     Priority-based classification:
-      1. cercospora score >= cercospora_thresh → cercospora_leaf_spot
+      1. late_blight score >= late_blight_thresh → late_blight
       2. od score         >= od_thresh         → other_diseases
       3. else                                  → healthy
     """
     preds = []
     for scores in scores_array:
-        if scores[CERCOSPORA_IDX] >= cercospora_thresh:
-            preds.append(CERCOSPORA_IDX)
+        if scores[LATE_BLIGHT_IDX] >= late_blight_thresh:
+            preds.append(LATE_BLIGHT_IDX)
         elif scores[OD_IDX] >= od_thresh:
             preds.append(OD_IDX)
         else:
@@ -329,7 +329,7 @@ def predict_with_thresholds(scores_array, cercospora_thresh, od_thresh):
     return np.array(preds)
 
 best_macro_f1          = 0.0
-best_cercospora_thresh = 0.50
+best_late_blight_thresh = 0.50
 best_od_thresh         = 0.50
 
 # Coarse 2D grid search (step=0.05)
@@ -340,20 +340,20 @@ for c_t in np.arange(0.20, 0.75, 0.05):
         macro_f1 = f1_score(val_y_true, preds, average='macro', zero_division=0)
         if macro_f1 > best_macro_f1:
             best_macro_f1          = macro_f1
-            best_cercospora_thresh = c_t
+            best_late_blight_thresh = c_t
             best_od_thresh         = od_t
 
 # Fine search ±0.06 around best coarse point (step=0.01)
 print("Fine-tuning around best coarse point...")
-for c_t in np.arange(max(0.10, best_cercospora_thresh - 0.06),
-                      best_cercospora_thresh + 0.07, 0.01):
+for c_t in np.arange(max(0.10, best_late_blight_thresh - 0.06),
+                      best_late_blight_thresh + 0.07, 0.01):
     for od_t in np.arange(max(0.10, best_od_thresh - 0.06),
                            best_od_thresh + 0.07, 0.01):
         preds    = predict_with_thresholds(val_y_score, c_t, od_t)
         macro_f1 = f1_score(val_y_true, preds, average='macro', zero_division=0)
         if macro_f1 > best_macro_f1:
             best_macro_f1          = macro_f1
-            best_cercospora_thresh = c_t
+            best_late_blight_thresh = c_t
             best_od_thresh         = od_t
 
 # Baseline comparison
@@ -361,11 +361,11 @@ baseline_preds    = np.argmax(val_y_score, axis=1)
 baseline_macro_f1 = f1_score(val_y_true, baseline_preds, average='macro', zero_division=0)
 print(f"\nBaseline (argmax):     Macro F1 = {baseline_macro_f1:.4f}")
 print(f"Optimized thresholds:  Macro F1 = {best_macro_f1:.4f}")
-print(f"  Cercospora threshold: {best_cercospora_thresh:.2f}")
+print(f"  late_blight threshold: {best_late_blight_thresh:.2f}")
 print(f"  OD threshold:         {best_od_thresh:.2f}")
 
 # Per-class recall/precision on val set with optimized thresholds
-opt_val_preds = predict_with_thresholds(val_y_score, best_cercospora_thresh, best_od_thresh)
+opt_val_preds = predict_with_thresholds(val_y_score, best_late_blight_thresh, best_od_thresh)
 print("\nVal set per-class with optimized thresholds:")
 for i, name in enumerate(class_names):
     r = recall_score(val_y_true == i, opt_val_preds == i, zero_division=0)
@@ -374,13 +374,13 @@ for i, name in enumerate(class_names):
 
 # Save for app.py
 threshold_config = {
-    "cercospora_threshold":   round(float(best_cercospora_thresh), 2),
+    "late_blight_threshold":   round(float(best_late_blight_thresh), 2),
     "od_threshold":           round(float(best_od_thresh), 2),
-    "cercospora_class_index": CERCOSPORA_IDX,
+    "late_blight_class_index": LATE_BLIGHT_IDX,
     "od_class_index":         OD_IDX,
     "healthy_class_index":    HEALTHY_IDX,
     "note": (
-        "Priority: if cercospora score >= cercospora_threshold → cercospora_leaf_spot. "
+        "Priority: if late_blight score >= late_blight_threshold → late_blight. "
         "Elif OD score >= od_threshold → other_diseases. Else → healthy."
     )
 }
@@ -393,15 +393,15 @@ print("Saved → models/threshold_config.json")
 # Use TTA scores + optimized thresholds for all evaluation below
 # ==========================================
 y_pred_argmax = np.argmax(y_score, axis=1)
-y_pred        = predict_with_thresholds(y_score, best_cercospora_thresh, best_od_thresh)
+y_pred        = predict_with_thresholds(y_score, best_late_blight_thresh, best_od_thresh)
 
 print(f"\n--- Baseline argmax ---")
-print(f"Cercospora Recall: {recall_score(y_true==CERCOSPORA_IDX, y_pred_argmax==CERCOSPORA_IDX, zero_division=0):.3f}")
+print(f"Late Blight Recall: {recall_score(y_true==LATE_BLIGHT_IDX, y_pred_argmax==LATE_BLIGHT_IDX, zero_division=0):.3f}")
 print(f"OD Recall:         {recall_score(y_true==OD_IDX,         y_pred_argmax==OD_IDX,         zero_division=0):.3f}")
 print(f"Overall Acc:       {np.mean(y_pred_argmax == y_true):.3f}")
 
-print(f"\n--- Threshold-Optimized (Cercospora={best_cercospora_thresh:.2f}, OD={best_od_thresh:.2f}) ---")
-print(f"Cercospora Recall: {recall_score(y_true==CERCOSPORA_IDX, y_pred==CERCOSPORA_IDX, zero_division=0):.3f}")
+print(f"\n--- Threshold-Optimized (Late Blight={best_late_blight_thresh:.2f}, OD={best_od_thresh:.2f}) ---")
+print(f"Late Blight Recall: {recall_score(y_true==LATE_BLIGHT_IDX, y_pred==LATE_BLIGHT_IDX, zero_division=0):.3f}")
 print(f"OD Recall:         {recall_score(y_true==OD_IDX,         y_pred==OD_IDX,         zero_division=0):.3f}")
 print(f"Overall Acc:       {np.mean(y_pred == y_true):.3f}")
 
@@ -577,7 +577,7 @@ metrics_json = {
     "tta_steps":               TTA_STEPS,
     "head_epochs_run":         actual_head_epochs,
     "fine_tune_epochs_run":    actual_fine_epochs,
-    "cercospora_threshold":    round(float(best_cercospora_thresh), 2),
+    "late_blight_threshold":    round(float(best_late_blight_thresh), 2),
     "od_threshold":            round(float(best_od_thresh), 2),
     "class_names":             class_names,
     "confusion_matrix":        cm.tolist(),
@@ -610,7 +610,7 @@ print("="*70)
 print(f"Head epochs run:      {actual_head_epochs}")
 print(f"Fine-tune epochs run: {actual_fine_epochs}")
 print(f"TTA steps:            {TTA_STEPS}")
-print(f"Cercospora threshold: {best_cercospora_thresh:.2f}")
+print(f"Late Blight threshold: {best_late_blight_thresh:.2f}")
 print(f"OD threshold:         {best_od_thresh:.2f}")
 print("-"*70)
 print(f"Test Accuracy:        {test_results[1]:.4f}")
