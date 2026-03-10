@@ -29,10 +29,10 @@ BATCH_SIZE = 32
 
 INITIAL_EPOCHS = 50
 FINE_TUNE_EPOCHS = 30
-FINE_TUNE_AT = 150           # freeze layers 0..149, unfreeze 150+
+FINE_TUNE_AT = 150           
 LEARNING_RATE_HEAD = 1e-3
-LEARNING_RATE_FINE = 1e-5    # raised from 1e-6 -> real fine-tuning signal
-LABEL_SMOOTHING    = 0.1     # label smoothing for better calibration
+LEARNING_RATE_FINE = 1e-5    
+LABEL_SMOOTHING    = 0.1    
 
 os.makedirs("models", exist_ok=True)
 
@@ -40,7 +40,6 @@ PLOTS_DIR = os.path.join("web", "static", "plots")
 os.makedirs(PLOTS_DIR, exist_ok=True)
 
 def savefig(name):
-    """Tight-save and close the current figure."""
     plt.tight_layout()
     plt.savefig(os.path.join(PLOTS_DIR, name), dpi=150, bbox_inches="tight")
     plt.close()
@@ -74,8 +73,6 @@ class_names = train_ds_raw.class_names
 NUM_CLASSES = len(class_names)
 print("Class order:", class_names)
 
-# Derive class indices from actual class_names - NEVER hardcode
-# Keras assigns indices alphabetically. Always look up at runtime to be safe.
 LATE_BLIGHT_IDX = class_names.index("late_blight")
 HEALTHY_IDX     = class_names.index("healthy")
 OD_IDX          = class_names.index("other_diseases")
@@ -201,8 +198,6 @@ print(f"\nHead training stopped at epoch {actual_head_epochs}")
 
 # ==========================================
 # STAGE 2: FINE-TUNE
-# Fine-tune uses a plain float LR (Adam(LEARNING_RATE_FINE)), so
-# ReduceLROnPlateau inside make_callbacks() is safe here too.
 # ==========================================
 print("\n=== Stage 2: Fine-tuning ===")
 base_model.trainable = True
@@ -259,7 +254,6 @@ print(f"Test Loss: {test_results[0]:.4f}, Test Accuracy: {test_results[1]:.4f}")
 
 # ==========================================
 # TTA PREDICTIONS
-# Plain Python loop -- safe on CPU, no @tf.function needed
 # ==========================================
 TTA_STEPS = 10
 print(f"\nGenerating predictions with TTA (n={TTA_STEPS})...")
@@ -285,15 +279,6 @@ y_score = np.array(y_score)
 
 # ==========================================
 # POST-TRAINING THRESHOLD OPTIMIZATION
-#
-# Replaces any hardcoded confidence threshold in app.py.
-#
-# Problem with a fixed threshold approach:
-#   - A single hardcoded value has no empirical basis from the validation set.
-#   - It can silently misclassify late_blight at lower confidence as other_diseases.
-#   - other_diseases becomes a catch-all fallback rather than a genuine prediction.
-#
-# Solution -- 2D grid search on val set:
 #   Jointly search late_blight_thresh x od_thresh to maximize macro F1.
 #   Priority: late_blight first (highest crop damage risk) -> other_diseases -> healthy.
 #   A fine pass refines to 2 decimal places around the best coarse result.
