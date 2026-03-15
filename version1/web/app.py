@@ -9,8 +9,6 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = os.path.join('static', 'uploads')
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
-# compile=False: avoids needing to register any custom loss function
-# at load time. We only use the model for inference, so this is safe.
 model = load_model("../models/best_model.keras", compile=False)
 
 with open("../models/class_names.json", "r") as f:
@@ -20,11 +18,6 @@ print("Loaded class order:", CLASSES)
 # Expected: ['healthy', 'late_blight', 'other_diseases']
 
 # ── Load optimized thresholds saved by training script ───────────────────────
-# The training script runs a grid search on the validation set to find the
-# late_blight and other_diseases thresholds that maximize macro F1.
-# These are far more reliable than a hardcoded 0.90 whitelist, which was
-# silently misclassifying any late_blight prediction below 90% as other_diseases
-# and never directly predicting other_diseases at all.
 _THRESHOLD_CONFIG_PATH = "../models/threshold_config.json"
 if os.path.exists(_THRESHOLD_CONFIG_PATH):
     with open(_THRESHOLD_CONFIG_PATH) as f:
@@ -151,7 +144,7 @@ def predict():
 
     preds = model.predict(x, verbose=0)[0]
 
-    # Threshold-based classification (replaces old 0.90 whitelist)
+    # Threshold-based classification
     predicted_class, decision_score = classify_with_thresholds(preds)
 
     # Build full probability dict keyed by class name
