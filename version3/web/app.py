@@ -22,10 +22,6 @@ print("Loaded class order:", CLASSES)
 # Expected: ['healthy', 'late_blight', 'other_diseases']
 
 # ── Load optimized thresholds saved by training script ───────────────────────
-# The training script runs a grid search on the validation set to find the
-# late_blight and other_diseases thresholds that maximize macro F1.
-# Threshold floors (MIN_LB_THRESHOLD, MIN_OD_THRESHOLD) are enforced during
-# training so these values are always safe minimums.
 _THRESHOLD_CONFIG_PATH = "../models/threshold_config.json"
 if os.path.exists(_THRESHOLD_CONFIG_PATH):
     with open(_THRESHOLD_CONFIG_PATH) as f:
@@ -86,19 +82,6 @@ def classify_with_thresholds(preds):
       1. If late_blight score  >= LATE_BLIGHT_THRESHOLD → late_blight
       2. If healthy score      >= OD_THRESHOLD           → healthy
       3. Else                                             → other_diseases  (last resort)
-
-    WHY this order:
-      - Late blight first: spreads fast, can devastate a crop within days.
-        Must be flagged even at moderate confidence.
-      - Healthy second: the model should actively confirm health before
-        considering an unknown disease category.
-      - other_diseases last: the training set does not cover all diseases,
-        so this class has incomplete coverage. It only fires when neither
-        late_blight nor healthy clears its threshold — a true last resort,
-        not a default fallback.
-
-    Returns:
-      predicted_class (str), decision_score (float)
     """
     late_blight_score = float(preds[LATE_BLIGHT_IDX])
     healthy_score     = float(preds[HEALTHY_IDX])

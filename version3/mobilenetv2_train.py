@@ -31,11 +31,10 @@ BATCH_SIZE = 32
 
 INITIAL_EPOCHS = 50
 FINE_TUNE_EPOCHS = 30
-FINE_TUNE_AT = 150           # freeze layers 0..149, unfreeze 150+
+FINE_TUNE_AT = 150           
 LEARNING_RATE_HEAD = 1e-3
-LEARNING_RATE_FINE = 1e-5    # raised from 1e-6 -> real fine-tuning signal
-LABEL_SMOOTHING    = 0.1     # label smoothing for better calibration
-
+LEARNING_RATE_FINE = 1e-5    
+LABEL_SMOOTHING    = 0.1     
 # ==========================================
 # THRESHOLD FLOORS
 # Minimum confidence a class must reach to be predicted.
@@ -52,11 +51,8 @@ LABEL_SMOOTHING    = 0.1     # label smoothing for better calibration
 #   - Late blight gets a moderate floor (0.50) to maintain high recall
 #     while filtering noise.
 #
-# These are hard minimums. The grid search below may raise them higher
-# if the validation set supports it, but will never go below these values.
-# ==========================================
-MIN_LB_THRESHOLD = 0.50   # late_blight: never predict below this confidence
-MIN_OD_THRESHOLD = 0.60   # other_diseases: high floor — last resort only
+MIN_LB_THRESHOLD = 0.50  
+MIN_OD_THRESHOLD = 0.60  
 
 os.makedirs("models", exist_ok=True)
 
@@ -315,11 +311,6 @@ y_score = np.array(y_score)
 #      an unknown disease it was not fully trained on.
 #   3. other_diseases last — catch-all for diseases not in the training set.
 #      Only fires when the model is confident AND neither of the above applies.
-#
-# Minimum threshold floors (MIN_LB_THRESHOLD, MIN_OD_THRESHOLD) are enforced
-# during the grid search so the optimized values never fall below safe minimums.
-# This prevents low-confidence spurious detections from overriding the
-# healthy/late_blight classes.
 # ==========================================
 print("\n=== Post-Training Threshold Optimization (on validation set) ===")
 print(f"Minimum threshold floors: late_blight >= {MIN_LB_THRESHOLD}, "
@@ -341,14 +332,6 @@ def predict_with_thresholds(scores_array, lb_thresh, od_thresh):
       1. late_blight score >= lb_thresh  -> late_blight
       2. healthy score     >= od_thresh  -> healthy  (second priority)
       3. else                            -> other_diseases  (last resort)
-
-    In plain terms:
-      - Predict late_blight if its score clears lb_thresh.
-      - Predict healthy if it clears od_thresh AND late_blight did not fire.
-      - Only fall through to other_diseases when neither late_blight nor
-        healthy clears their threshold — making it a true last resort.
-        This is correct because the model was not trained on all possible
-        diseases, so other_diseases should never be the default fallback.
     """
     preds = []
     for scores in scores_array:
