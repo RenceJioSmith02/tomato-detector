@@ -8,10 +8,16 @@
 /version2/dataset/test*/
 /version2/dataset/
 
+/version3/dataset/train*/
+/version3/dataset/val*/
+/version3/dataset/test*/
+/version3/dataset/
+
 /for testing in presentation/
 
 /version1/web/static/uploads*/
 /version2/web/static/uploads*/
+/version3/web/static/uploads*/
 
 venv/
 .env

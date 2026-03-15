@@ -1,0 +1,14 @@
+{
+  "late_blight_threshold": 0.55,
+  "od_threshold": 0.7,
+  "late_blight_class_index": 1,
+  "od_class_index": 2,
+  "healthy_class_index": 0,
+  "min_lb_threshold_floor": 0.5,
+  "min_od_threshold_floor": 0.6,
+  "note": "Priority: if late_blight score >= late_blight_threshold -> late_blight. Elif healthy score >= od_threshold -> healthy. Else -> other_diseases. other_diseases is last resort \u2014 thresholds never go below their floor values."
+}
+
+
+
+
